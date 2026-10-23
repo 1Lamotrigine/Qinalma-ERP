@@ -1,0 +1,19 @@
+#!/bin/sh
+# Скрипт, копируемый в релиз. Накатывает миграции, создаёт администратора
+# и запускает приложение. Используется как команда контейнера web.
+set -e
+
+# Миграции и сиды не должны поднимать веб-сервер и очередь задач.
+export PHX_SERVER="false"
+export OBAN_DISABLED="true"
+
+echo "==> Миграции"
+bin/pulse eval "Pulse.Release.migrate()"
+
+echo "==> Сиды"
+bin/pulse eval "Pulse.Release.seed()"
+
+echo "==> Запуск приложения"
+export PHX_SERVER="true"
+export OBAN_DISABLED="false"
+exec bin/pulse start

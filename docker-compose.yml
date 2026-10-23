@@ -1,0 +1,61 @@
+name: pulse
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: pulse_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-pulse}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?задайте DB_PASSWORD в .env}
+      POSTGRES_DB: ${DB_NAME:-pulse_dev}
+      TZ: UTC
+    ports:
+      - '127.0.0.1:${DB_PORT:-5434}:5432'
+    volumes:
+      - pulse_pgdata:/var/lib/postgresql/data
+      - ./docker/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-pulse} -d ${DB_NAME:-pulse_dev}']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    image: pulse_web:latest
+    container_name: pulse_web
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      PHX_SERVER: 'true'
+      PORT: '4000'
+      TZ: UTC
+    ports:
+      - '127.0.0.1:${WEB_PORT:-4000}:4000'
+    depends_on:
+      db:
+        condition: service_healthy
+
+  pgadmin:
+    image: dpage/pgadmin4:9
+    container_name: pulse_pgadmin
+    profiles: ['tools']
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@qinalma.local}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:?задайте PGADMIN_PASSWORD в .env}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '127.0.0.1:5050:80'
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pulse_pgdata:

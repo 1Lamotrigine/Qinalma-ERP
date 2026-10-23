@@ -1,0 +1,6 @@
+[
+  verbose: false,
+  ignore: ["Config.CSP", "RCE.CodeModule"],
+  skip: false,
+  exit: "low"
+]
