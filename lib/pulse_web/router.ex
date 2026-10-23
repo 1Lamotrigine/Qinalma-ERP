@@ -2,6 +2,8 @@ defmodule PulseWeb.Router do
   use PulseWeb, :router
   use AshAuthentication.Phoenix.Router
 
+  alias PulseWeb.AuthOverrides
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -33,10 +35,23 @@ defmodule PulseWeb.Router do
   scope "/", PulseWeb do
     pipe_through :browser
 
-    sign_in_route(register_path: "/register", reset_path: "/reset", auth_routes_prefix: "/auth")
-    sign_out_route(AuthController)
+    sign_in_route(
+      register_path: "/register",
+      reset_path: "/reset",
+      auth_routes_prefix: "/auth",
+      overrides: [AuthOverrides, AshAuthentication.Phoenix.Overrides.Default]
+    )
+
+    sign_out_route(AuthController, "/sign-out",
+      overrides: [AuthOverrides, AshAuthentication.Phoenix.Overrides.Default]
+    )
+
     auth_routes(AuthController, Pulse.Accounts.User)
-    reset_route(auth_routes_prefix: "/auth")
+
+    reset_route(
+      auth_routes_prefix: "/auth",
+      overrides: [AuthOverrides, AshAuthentication.Phoenix.Overrides.Default]
+    )
 
     get "/invoices/:id/xml", InvoiceController, :xml
   end
