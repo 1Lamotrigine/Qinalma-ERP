@@ -18,9 +18,13 @@ defmodule Pulse.Workers.CloseMonth do
   """
   @spec enqueue(Date.t(), String.t(), String.t() | nil) :: {:ok, Oban.Job.t()} | {:error, term()}
   def enqueue(date, organization_id, actor_id \\ nil) do
-    %{date: Date.to_iso8601(date), organization_id: organization_id, actor_id: actor_id}
-    |> new()
-    |> Oban.insert()
+    if Pulse.Application.oban_disabled?() do
+      {:error, :oban_disabled}
+    else
+      %{date: Date.to_iso8601(date), organization_id: organization_id, actor_id: actor_id}
+      |> new()
+      |> Oban.insert()
+    end
   end
 
   @impl true

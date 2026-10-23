@@ -14,7 +14,8 @@ services:
       - '127.0.0.1:${DB_PORT:-5434}:5432'
     volumes:
       - pulse_pgdata:/var/lib/postgresql/data
-      - ./docker/db/init:/docker-entrypoint-initdb.d:ro
+      # :z — SELinux-релейбл для Podman (на Docker без SELinux игнорируется).
+      - ./docker/db/init:/docker-entrypoint-initdb.d:ro,z
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-pulse} -d ${DB_NAME:-pulse_dev}']
       interval: 5s

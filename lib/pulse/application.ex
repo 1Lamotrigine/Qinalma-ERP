@@ -32,12 +32,21 @@ defmodule Pulse.Application do
   # Oban не запускается при выполнении миграций и сидов
   # (переменная OBAN_DISABLED=true), чтобы не обращаться к ещё не созданным таблицам.
   defp oban_children do
-    if System.get_env("OBAN_DISABLED") in ["true", "1"] do
+    if oban_disabled?() do
       []
     else
       [{Oban, Application.fetch_env!(:pulse, Oban)}]
     end
   end
+
+  @doc """
+  Отключён ли Oban.
+
+  Используется миграциями и сидами: в этом режиме фоновые задачи
+  не запускаются и не ставятся в очередь.
+  """
+  @spec oban_disabled?() :: boolean()
+  def oban_disabled?, do: System.get_env("OBAN_DISABLED") in ["true", "1"]
 
   # Tell Phoenix to update the endpoint configuration
   # whenever the application is updated.

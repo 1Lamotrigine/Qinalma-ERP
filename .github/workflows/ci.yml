@@ -92,6 +92,7 @@ jobs:
           DB_PORT=5434
           SECRET_KEY_BASE=$(head -c 64 /dev/urandom | base64 | tr -d '\n')
           TOKEN_SIGNING_SECRET=$(head -c 32 /dev/urandom | base64 | tr -d '\n')
+          CLOAK_KEY=$(head -c 32 /dev/urandom | base64 | tr -d '\n')
           PHX_HOST=localhost
           WEB_PORT=4000
           ADMIN_EMAIL=admin@qinalma.local
